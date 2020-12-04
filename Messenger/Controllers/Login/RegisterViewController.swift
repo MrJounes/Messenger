@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import FirebaseAuth
 
 class RegisterViewController: UIViewController {
 
@@ -17,7 +18,7 @@ class RegisterViewController: UIViewController {
     
     private let imageView: UIImageView = {
         let imageView = UIImageView()
-        imageView.image = UIImage(systemName: "person")
+        imageView.image = UIImage(systemName: "person.circle")
         imageView.tintColor = .gray
         imageView.contentMode = .scaleAspectFit
         imageView.layer.masksToBounds = true
@@ -104,11 +105,6 @@ class RegisterViewController: UIViewController {
         title = "Registration"
         view.backgroundColor = .white
         
-//        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Register",
-//                                                            style: .done,
-//                                                            target: self,
-//                                                            action: #selector(didTapRegister))
-        
         registerButton.addTarget(self, action: #selector(registerButtonTapped), for: .touchUpInside)
         
         emailField.delegate = self
@@ -187,6 +183,18 @@ class RegisterViewController: UIViewController {
         }
         
         //Firebase Register
+        
+        FirebaseAuth.Auth.auth().createUser(withEmail: email, password: password) { [weak self] (authResult, error)  in
+            guard let strongSelf = self else { return }
+            guard let result = authResult, error == nil else {
+                print("Error cureating user")
+                return
+            }
+            
+            let user = result.user
+            print("Created User: \(user)")
+            strongSelf.navigationController?.dismiss(animated: true, completion: nil)
+        }
     }
     
     func alertUserLoginError() {
@@ -198,12 +206,7 @@ class RegisterViewController: UIViewController {
                                       handler: nil))
         present(alert, animated: true)
     }
-    
-//    @objc private func didTapRegister() {
-//        let vc = RegisterViewController()
-//        vc.title = "Create Account"
-//        navigationController?.pushViewController(vc, animated: true)
-//    }
+
 }
 
 extension RegisterViewController: UITextFieldDelegate {
@@ -269,7 +272,7 @@ extension RegisterViewController: UIImagePickerControllerDelegate, UINavigationC
     
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
         picker.dismiss(animated: true, completion: nil)
-        guard let selectedImage = info[UIImagePickerController.InfoKey.originalImage] as? UIImage else { return }
+        guard let selectedImage = info[UIImagePickerController.InfoKey.editedImage] as? UIImage else { return }
         self.imageView.image = selectedImage
     }
     
